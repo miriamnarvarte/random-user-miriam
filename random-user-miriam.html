@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Utilisateur aléatoire</title>
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var $infos = $("#infos");
+
+            //Récupération des données d'un utilisateur aléatoire
+            //depuis le serveur randomuser.me
+            const API_URL = "https://randomuser.me/api?";
+
+            var user;
+
+            //Définition des cibles de l'application
+            var $form = $("form");
+            var $nationality = $("#nationality");
+
+            //capture de l'événement submit sur le formulaire
+            $form.submit(function(event) {
+                //Empêche l'envoi du formulaire
+                event.preventDefault();
+
+                //Récupération de la valeur de la case cochée
+                var gender = $(":checked").val();
+
+                //Récupération du choix de la nationalité
+                var nationality = $nationality.val();
+
+                //récupération du nombre d'utilisateurs demandé
+                var numberOfResults = $("#numberOfResults").val();
+
+                //var requestUrl = API_URL+ "gender=" + gender + "&nat=" + nationality;
+                var requestUrl = `${API_URL}gender=${gender}&nat=${nationality}&results=${numberOfResults}`;
+
+                //appel ajax
+                $.get(requestUrl, function(response) {
+                    console.log(response);
+                    user = response.results[0];
+
+                    $infos.children()
+                        .first()
+                        .text(user.name.first + " " + user.name.last)
+                        .next()
+                        .text(user.gender);
+
+                    //boucle sur le résultat
+                    var $tbody = $("tbody");
+                    var $template = $("#rowTemplate");
+
+                    //Nouveau tbody qui remplacera l'ancien
+                    var $newTbody = $("<tbody></tbody>");
+                    $newTbody.append($template);
+
+                    for (currentUser of response.results) {
+                        //clone du modèle
+                        var $row = $template.clone().removeAttr("id");
+                        //remplissage du clone avec les données
+                        $row.children()
+                            .first().text(currentUser.name.first + " " + currentUser.name.last)
+                            .next().text(currentUser.email)
+                            .next().text(currentUser.phone)
+                            .next().text(
+                                currentUser.location.street.number + " " +
+                                currentUser.location.street.name + " " +
+                                currentUser.location.postcode + " " +
+                                currentUser.location.city
+                            );
+
+                        //console.log($row);
+
+                        //insertion de la nouvelle ligne dans le nouveau tbody
+                        $newTbody.append($row);
+                    }
+
+                    //remplacement de l'ancien tbody par le nouveau
+                    $tbody.replaceWith($newTbody);
+                });
+
+                $.get("https://opendata.paris.fr/api/records/1.0/search/?dataset=que-faire-a-paris-&facet=category&facet=tags&facet=address_zipcode&facet=address_city&facet=pmr&facet=blind&facet=deaf&facet=access_type&facet=price_type&rows=100",
+                    function(data) {
+                        console.log(data);
+                    });
+
+            });
+
+
+
+            console.log("fin du script");
+
+        });
+    </script>
+
+    <style>
+        #rowTemplate {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <form method="POST">
+        <div>
+            <label>Genre :</label>
+            <input type="radio" value="female" id="radioFemale" name="gender" checked>
+            <label for="radioFemale">Féminin</label>
+            <input type="radio" value="male" id="radioMale" name="gender">
+            <label for="radioMale">Masculin</label>
+        </div>
+        <div>
+            <label for="nationality">Nationalité</label>
+            <select id="nationality">
+                <option value="FR">Française</option>
+                <option value="DK">Danoise</option>
+                <option value="DE">Allemande</option>
+                <option value="IE">Irlandaise</option>
+                <option value="ES">Espagnole</option>
+            </select>
+        </div>
+        <div>
+            <label for="numberOfResults">Nombre de personnes</label>
+            <select id="numberOfResults">
+                <option>10</option>
+                <option>20</option>
+                <option>30</option>
+                <option>40</option>
+                <option>50</option>
+            </select>
+        </div>
+        <div>
+            <button type="submit">Valider</button>
+        </div>
+    </form>
+
+    <div id="infos">
+        <h1></h1>
+        <p></p>
+    </div>
+
+
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>email</th>
+                <th>tel</th>
+                <th>adresse</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr id="rowTemplate">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+
+        </tbody>
+    </table>
+
+</body>
+
+</html>
